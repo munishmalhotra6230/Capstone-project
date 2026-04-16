@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}Traffic Analyzer - Prediction Engine{% endblock %}
+
+{% block content %}
+
+    <div class="row justify-content-center">
+        <!-- UPLOAD SECTION -->
+        <div class="col-lg-6 mb-5">
+            <div class="premium-card p-4 h-100 text-center d-flex flex-column justify-content-center">
+                
+                <div class="mb-4">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded-circle mb-3" style="width: 80px; height: 80px;">
+                        <i class="bi bi-cloud-arrow-up-fill text-primary" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h3 class="fw-bold">Upload Traffic Log</h3>
+                    <p class="text-muted mb-0">Provide your `.pcap` or `.pcapng` trace for immediate neural scan.</p>
+                </div>
+
+                <form method="POST" enctype="multipart/form-data" class="bg-dark p-4 rounded-3 border border-secondary" id="predictForm">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-4 text-start">
+                        <label class="form-label text-muted fw-bold">{{ form.file.label.text }}</label>
+                        {{ form.file(class="form-control bg-transparent text-white border-secondary") }}
+                        
+                        {% for error in form.file.errors %}
+                            <div class="text-danger mt-2 small"><i class="bi bi-exclamation-circle"></i> {{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    {{ form.submit(class="btn btn-gradient w-100 btn-lg", id="predictBtn") }}
+                </form>
+            </div>
+        </div>
+
+        <!-- RESULTS SECTION -->
+        <div class="col-lg-6 mb-5">
+            <div class="premium-card p-0 h-100 overflow-hidden">
+                <div class="p-4 border-bottom border-secondary d-flex justify-content-between align-items-center bg-dark">
+                    <h4 class="fw-bold mb-0 border-start border-4 border-info ps-3">Analysis Terminal</h4>
+                    {% if result %}
+                        {% if result['attack_count'] > 0 %}
+                            <span class="badge bg-danger px-3 py-2 animate-pulse"><i class="bi bi-x-octagon-fill"></i> THREATS DETECTED</span>
+                        {% else %}
+                            <span class="badge bg-success px-3 py-2"><i class="bi bi-shield-fill-check"></i> ALL CLEAR</span>
+                        {% endif %}
+                    {% endif %}
+                </div>
+                
+                <div class="p-4 bg-panel" style="min-height: 300px;">
+                    {% if result %}
+                        <!-- MODEL HEALTH -->
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                {% if 'healthy' in result['model_health']|lower %}
+                                    <div class="alert bg-success text-success bg-opacity-10 py-2 d-flex justify-content-between align-items-center mb-0">
+                                        <span><i class="bi bi-cpu-fill me-2"></i> Model Core: <strong>Healthy</strong></span>
+                                        <small>High Confidence</small>
+                                    </div>
+                                {% elif 'observation' in result['model_health']|lower %}
+                                    <div class="alert bg-warning text-warning bg-opacity-10 py-2 d-flex justify-content-between align-items-center mb-0">
+                                        <span><i class="bi bi-cpu-fill me-2"></i> Model Core: <strong>Needs Observation</strong></span>
+                                        <small>Confidence Declining</small>
+                                    </div>
+                                {% else %}
+                                    <div class="alert bg-danger text-danger bg-opacity-10 border border-danger py-2 d-flex justify-content-between align-items-center mb-0">
+                                        <span><i class="bi bi-exclamation-triangle-fill me-2"></i> Model Core: <strong>{{ result['model_health']|title }}</strong></span>
+                                        <small class="fw-bold animate-pulse">ACTION REQUIRED</small>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- STATS -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-6">
+                                <div class="bg-dark p-3 rounded text-center border border-success border-opacity-25">
+                                    <p class="text-muted small mb-1">SAFE FLOWS</p>
+                                    <h2 class="text-success fw-bold mb-0">{{ result['normal_count'] }}</h2>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="bg-dark p-3 rounded text-center border border-danger border-opacity-25">
+                                    <p class="text-muted small mb-1">MALICIOUS FLOWS</p>
+                                    <h2 class="text-danger fw-bold mb-0">{{ result['attack_count'] }}</h2>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- LOGS -->
+                        <h6 class="text-muted fw-bold mb-3">ATTACK SIGNATURE LOGS</h6>
+                        {% if result['attacks'] and result['attacks']|length > 0 %}
+                            <div class="list-group rounded-3 border-secondary" style="max-height: 250px; overflow-y: auto;">
+                                {% for time, attack in result['attacks'] %}
+                                    <div class="list-group-item bg-dark text-light border-secondary d-flex justify-content-between align-items-center py-2">
+                                        <span class="font-monospace text-secondary small align-self-start mt-1">[{{ time }}]</span>
+                                        <span class="fw-bold text-danger text-end ms-3">{{ attack }}</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-success bg-success bg-opacity-10 border-success text-success d-flex align-items-center" role="alert">
+                                <i class="bi bi-check-circle-fill me-3 fs-3"></i>
+                                <div>
+                                    <h6 class="mb-0 fw-bold">Zero Threats Found</h6>
+                                    <small>The analyzed packet boundaries returned healthy heuristics.</small>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                    {% else %}
+                        <!-- WAITING STATE -->
+                        <div class="h-100 d-flex flex-column align-items-center justify-content-center text-muted" style="min-height: 200px;">
+                            <i class="bi bi-terminal fs-1 mb-2 opacity-50"></i>
+                            <p class="mb-0">Awaiting payload injection...</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add loading text on submit
+    const predictForm = document.getElementById('predictForm');
+    if (predictForm) {
+        predictForm.onsubmit = function() {
+            var btn = document.getElementById('predictBtn');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing Packets...';
+            btn.classList.add('disabled');
+        };
+    }
+</script>
+<style>
+    @keyframes pulse-red {
+        0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+    }
+    .animate-pulse {
+        animation: pulse-red 2s infinite;
+    }
+</style>
+{% endblock %}

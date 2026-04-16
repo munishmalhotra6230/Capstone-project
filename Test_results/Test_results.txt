@@ -1,0 +1,102 @@
+================================================================
+NIDS PROJECT — MODEL EVALUATION SUMMARY
+================================================================
+
+DATASET: CIC-IDS 2017 (Subset)
+Total Records: 1,428,335 (approx)
+Test Set Size: 285,667 flows
+Train/Test Split: 80/20 (Stratified)
+
+----------------------------------------------------------------
+STAGE 1 — BINARY INTRUSION DETECTION
+----------------------------------------------------------------
+
+Model 1: Logistic Regression
+  Accuracy         : ~85%
+  Notes            : Underperforms due to non-linear feature
+                     relationships in network traffic data
+
+Model 2: Random Forest (Selected)
+  Accuracy         : 99.84% (Cross-validation)
+  Threshold        : 0.12 (Optimized for recall)
+
+  Confusion Matrix:
+    True Negatives  : 227,669
+    False Positives :     204
+    False Negatives :     235
+    True Positives  :  57,559
+
+  Metrics:
+    False Alarm Rate  : 0.09%
+    Missed Attack Rate: 0.41%
+    Precision         : 1.00
+    Recall            : 1.00
+    F1-Score          : 1.00
+
+----------------------------------------------------------------
+STAGE 2 — MULTI-CLASS ATTACK CLASSIFICATION
+----------------------------------------------------------------
+
+Model: Random Forest
+Dataset: Attack flows only (BENIGN removed)
+Classes: Bot, DDoS, Infiltration, PortScan
+
+  Per-Class Results:
+  ┌─────────────┬───────────┬────────┬──────────┬─────────┐
+  │ Class       │ Precision │ Recall │ F1-Score │ Support │
+  ├─────────────┼───────────┼────────┼──────────┼─────────┤
+  │ Bot         │   1.00    │  1.00  │   1.00   │     390 │
+  │ DDoS        │   1.00    │  1.00  │   1.00   │  25,602 │
+  │ Infiltration│   1.00    │  0.67  │   0.80   │       6 │
+  │ PortScan    │   1.00    │  1.00  │   1.00   │  18,139 │
+  ├─────────────┼───────────┼────────┼──────────┼─────────┤
+  │ Macro Avg   │   1.00    │  0.92  │   0.95   │  44,137 │
+  │ Weighted Avg│   1.00    │  1.00  │   1.00   │  44,137 │
+  └─────────────┴───────────┴────────┴──────────┴─────────┘
+
+  Confusion Matrix:
+    Bot          : [390,   0,  0,     0]
+    DDoS         : [  0,25602,  0,     0]
+    Infiltration : [  0,    1,  4,     1]
+    PortScan     : [  0,    1,  0, 18138]
+
+  Key Note:
+    Infiltration recall = 0.67 due to only 6 test samples.
+    This reflects dataset limitation, not model deficiency.
+    Macro F1 = 0.95 is the honest performance indicator.
+    Weighted F1 = 1.00 is skewed by DDoS dominance.
+
+----------------------------------------------------------------
+REAL-WORLD TRAFFIC TEST
+----------------------------------------------------------------
+
+Capture Tool : Wireshark (Wi-Fi interface)
+Feature Ext  : Scapy (manual flow extraction)
+Threshold    : 0.5 (conservative — reduced false positives)
+
+  Results:
+    Total flows captured : 12
+    Normal flows         : 12
+    Attack flows         : 0
+
+  Note:
+    At threshold 0.12 — 5 false positives detected (DDoS x3,
+    Bot x1, PortScan x1) on benign browsing traffic.
+    At threshold 0.50 — 0 false positives. All flows correctly
+    classified as normal.
+    Domain gap between synthetic training data (CIC-IDS 2017)
+    and real-world traffic is a known limitation.
+
+----------------------------------------------------------------
+KNOWN LIMITATIONS
+----------------------------------------------------------------
+
+1. CIC-IDS 2017 is simulated — not real-world traffic
+2. Only 4 attack types covered (subset of full dataset)
+3. Infiltration class severely underrepresented (6 test samples)
+4. Model trained on 2017 patterns — modern attacks may differ
+5. Real-world threshold requires tuning per deployment environment
+6. Destination Port feature may cause brittleness — attackers
+   change ports in real scenarios
+
+================================================================

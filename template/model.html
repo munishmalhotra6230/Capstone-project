@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block title %}Neural Core - Model Health Monitoring{% endblock %}
+
+{% block content %}
+<div class="row mb-5">
+    <div class="col-12 text-center text-lg-start">
+        <h2 class="fw-bold"><span class="text-gradient">Core System Integrity</span></h2>
+        <p class="text-muted">Live diagnostic health summary of loaded binary and multiclass neural parameters.</p>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- PHASE 1 WIDGET -->
+    <div class="col-lg-6">
+        <div class="premium-card p-0 overflow-hidden h-100 position-relative">
+            <div class="p-3 bg-dark border-bottom border-secondary d-flex justify-content-between align-items-center">
+                <span class="fw-bold border-start border-4 border-primary ps-3 text-white">Phase 1: Binary Gateway</span>
+                <span class="badge bg-success bg-opacity-25 text-success border border-success"><i class="bi bi-activity"></i> Active</span>
+            </div>
+            
+            <div class="p-4 bg-panel">
+                {% if models.get('phase1') %}
+                <div class="row g-4 mb-4">
+                    <div class="col-6">
+                        <div class="p-3 bg-dark rounded border border-secondary text-center">
+                            <span class="text-muted small d-block mb-1">Baseline Accuracy</span>
+                            <span class="fs-2 fw-bold text-success">{{ models['phase1']['accuracy'] }}</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 bg-dark rounded border border-secondary text-center">
+                            <span class="text-muted small d-block mb-1">F1 Score</span>
+                            <span class="fs-2 fw-bold text-info">{{ models['phase1']['f1'] }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <ul class="list-group list-group-flush bg-transparent">
+                    <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between px-0">
+                        <span class="text-muted">Last Compilation</span>
+                        <span class="font-monospace text-primary">{{ models['phase1']['date'] }}</span>
+                    </li>
+                    <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between px-0">
+                        <span class="text-muted">Algorithm</span>
+                        <span>Multi-Tree {{ models['phase1']['type'] }}</span>
+                    </li>
+                    <li class="list-group-item bg-transparent text-light border-0 d-flex justify-content-between px-0">
+                        <span class="text-muted">Artifact File Size</span>
+                        <span class="font-monospace text-warning">{{ models['phase1']['size'] }}</span>
+                    </li>
+                </ul>
+                {% else %}
+                <div class="text-center text-danger py-5">
+                    <i class="bi bi-exclamation-triangle fs-1"></i>
+                    <p class="mt-2 text-white">Model Phase 1 Artifact Missing from 'models/'</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- PHASE 2 WIDGET -->
+    <div class="col-lg-6">
+        <div class="premium-card p-0 overflow-hidden h-100 position-relative">
+            <div class="p-3 bg-dark border-bottom border-secondary d-flex justify-content-between align-items-center">
+                <span class="fw-bold border-start border-4 border-purple ps-3 text-white">Phase 2: Multi-class Identifier</span>
+                <span class="badge bg-success bg-opacity-25 text-success border border-success"><i class="bi bi-activity"></i> Active</span>
+            </div>
+            
+            <div class="p-4 bg-panel">
+                {% if models.get('phase2') %}
+                <div class="row g-4 mb-4">
+                    <div class="col-6">
+                        <div class="p-3 bg-dark rounded border border-secondary text-center">
+                            <span class="text-muted small d-block mb-1">Baseline Accuracy</span>
+                            <span class="fs-2 fw-bold" style="color: #a78bfa;">{{ models['phase2']['accuracy'] }}</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 bg-dark rounded border border-secondary text-center">
+                            <span class="text-muted small d-block mb-1">F1 Score</span>
+                            <span class="fs-2 fw-bold text-info">{{ models['phase2']['f1'] }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <ul class="list-group list-group-flush bg-transparent">
+                    <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between px-0">
+                        <span class="text-muted">Last Compilation</span>
+                        <span class="font-monospace" style="color: #a78bfa;">{{ models['phase2']['date'] }}</span>
+                    </li>
+                    <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between px-0">
+                        <span class="text-muted">Algorithm</span>
+                        <span>Multi-Tree {{ models['phase2']['type'] }}</span>
+                    </li>
+                    <li class="list-group-item bg-transparent text-light border-0 d-flex justify-content-between px-0">
+                        <span class="text-muted">Artifact File Size</span>
+                        <span class="font-monospace text-warning">{{ models['phase2']['size'] }}</span>
+                    </li>
+                </ul>
+                {% else %}
+                <div class="text-center text-danger py-5">
+                    <i class="bi bi-exclamation-triangle fs-1"></i>
+                    <p class="mt-2 text-white">Model Phase 2 Artifact Missing from 'models/'</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recommendations Block -->
+<div class="row">
+    <div class="col-12">
+        <div class="premium-card p-4 bg-dark border-info border-opacity-25 d-flex align-items-center">
+            <i class="bi bi-info-circle-fill fs-1 text-info me-4 opacity-75"></i>
+            <div>
+                <h5 class="fw-bold text-info mb-1">Retraining Parameters & Health Checks</h5>
+                <p class="text-muted mb-0">Whenever the live <strong>Confidence Mean</strong> plummets below the <code>0.85</code> anomaly threshold natively generated during standard traffic prediction (`Analyze Traffic` tool), immediate retraining with updated .csv records is heavily recommended.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
