@@ -170,7 +170,9 @@ python dashboard.py
 ```
 
 
-
+# images :
+![alt text](<Screenshot 2026-05-06 173915.png>) ![alt text](<Screenshot 2026-05-06 174028.png>) ![alt text](<Screenshot 2026-05-06 174043.png>)
+![alt text](<Screenshot 2026-05-06 175051.png>)
 
 Maintenance & notes
 -------------------
