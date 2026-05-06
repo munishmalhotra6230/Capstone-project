@@ -10,14 +10,31 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from models.pipeline import Full_pipeline
 
 def extract_features(pkts):
+    if not pkts or len(pkts) == 0:
+        return None
+        
+    first_pkt = pkts[0]
+    if IP not in first_pkt:
+        return None
+        
+    src_ip = first_pkt[IP].src
+    
     sizes = [len(p) for p in pkts]
     times = [float(p.time) for p in pkts]
     iats = np.diff(times).tolist() if len(times) > 1 else [0]
     
-    fwd = pkts[:len(pkts)//2]
-    bwd = pkts[len(pkts)//2:]
-    fwd_sizes = [len(p) for p in fwd] or [0]
-    bwd_sizes = [len(p) for p in bwd] or [0]
+    # Identify forward and backward packets correctly
+    fwd = [p for p in pkts if IP in p and p[IP].src == src_ip]
+    bwd = [p for p in pkts if IP in p and p[IP].src != src_ip]
+    
+    fwd_sizes = [len(p) for p in fwd] if fwd else [0]
+    bwd_sizes = [len(p) for p in bwd] if bwd else [0]
+    
+    fwd_times = [float(p.time) for p in fwd]
+    bwd_times = [float(p.time) for p in bwd]
+    
+    fwd_iats = np.diff(fwd_times).tolist() if len(fwd_times) > 1 else [0]
+    bwd_iats = np.diff(bwd_times).tolist() if len(bwd_times) > 1 else [0]
 
     syn = sum(1 for p in pkts if TCP in p and p[TCP].flags & 0x02)
     fin = sum(1 for p in pkts if TCP in p and p[TCP].flags & 0x01)
@@ -32,7 +49,7 @@ def extract_features(pkts):
 
     return {
         'Timestamp':                 start_time,
-        'Destination Port':          pkts[0][TCP].dport if TCP in pkts[0] else 0,
+        'Destination Port':          first_pkt[TCP].dport if TCP in first_pkt else (first_pkt[UDP].dport if UDP in first_pkt else 0),
         'Flow Duration':             duration * 1e6,
         'Total Length of Fwd Packets': sum(fwd_sizes),
         'Fwd Packet Length Mean':    np.mean(fwd_sizes),
@@ -42,13 +59,13 @@ def extract_features(pkts):
         'Flow Bytes/s':              sum(sizes) / duration,
         'Flow Packets/s':            len(pkts) / duration,
         'Flow IAT Std':              np.std(iats),
-        'Fwd IAT Total':             sum(iats),
-        'Fwd IAT Mean':              np.mean(iats),
-        'Fwd IAT Std':               np.std(iats),
-        'Bwd IAT Total':             sum(iats),
-        'Bwd IAT Mean':              np.mean(iats),
-        'Bwd IAT Std':               np.std(iats),
-        'Fwd PSH Flags':             psh,
+        'Fwd IAT Total':             sum(fwd_iats),
+        'Fwd IAT Mean':              np.mean(fwd_iats),
+        'Fwd IAT Std':               np.std(fwd_iats),
+        'Bwd IAT Total':             sum(bwd_iats),
+        'Bwd IAT Mean':              np.mean(bwd_iats),
+        'Bwd IAT Std':               np.std(bwd_iats),
+        'Fwd PSH Flags':             sum(1 for p in fwd if TCP in p and p[TCP].flags & 0x08),
         'Fwd Packets/s':             len(fwd) / duration,
         'Bwd Packets/s':             len(bwd) / duration,
         'Packet Length Mean':        np.mean(sizes),
@@ -62,12 +79,14 @@ def extract_features(pkts):
         'Avg Fwd Segment Size':      np.mean(fwd_sizes),
         'Avg Bwd Segment Size':      np.mean(bwd_sizes),
         'Subflow Fwd Bytes':         sum(fwd_sizes),
-        'Init_Win_bytes_forward':    pkts[0][TCP].window if TCP in pkts[0] else 0,
-        'Init_Win_bytes_backward':   pkts[-1][TCP].window if TCP in pkts[-1] else 0,
+        'Init_Win_bytes_forward':    fwd[0][TCP].window if (fwd and TCP in fwd[0]) else 0,
+        'Init_Win_bytes_backward':   bwd[0][TCP].window if (bwd and TCP in bwd[0]) else 0,
         'Active Std':                np.std(sizes),
         'Idle Mean':                 np.mean(iats),
         'Idle Std':                  np.std(iats),
     }
+
+
 
 def analyze_pcap(pcap_file):
     print(f"Reading pcap file: {pcap_file}")
