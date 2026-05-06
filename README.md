@@ -1,6 +1,6 @@
 Capstone Project — Network Packet Analysis & Monitoring
 =======================================================
-
+# Dataset: CCIDS 2017 dataset
 Summary
 -------
 This project analyzes network traffic captured in PCAP/PCAPNG files, runs a two-stage detection/classification pipeline, and supports both user-driven file analysis via a small Flask web app and live monitoring via a Streamlit dashboard.
