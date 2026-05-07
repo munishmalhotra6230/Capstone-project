@@ -1,6 +1,6 @@
 import streamlit as st
 import time
-from streaming.producer import producer_pcap
+from streaming.producer import producer_pcap,get_data
 
 st.set_page_config(page_title="Network Live Stream", layout="wide")
 st.title("Real-time Packet Streaming & Analysis")
@@ -13,7 +13,11 @@ log_display = st.empty()
 # Add a "Stop" button in the sidebar
 run_analysis = st.sidebar.button("Start Live Capture")
 stop_analysis = st.sidebar.button("Stop")
-
+attack_summary=st.sidebar.button("Attack Summary")
+    
+if attack_summary:
+    st.write("### 🚨 Attack Details")
+    st.table(get_data())
 if run_analysis:
     st.sidebar.success("Streaming Active")
     

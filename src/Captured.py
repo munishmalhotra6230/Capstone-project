@@ -48,6 +48,7 @@ def extract_features(pkts):
     start_time = datetime.datetime.fromtimestamp(times[0]).strftime('%Y-%m-%d %H:%M:%S')
 
     return {
+        'IP':src_ip,
         'Timestamp':                 start_time,
         'Destination Port':          first_pkt[TCP].dport if TCP in first_pkt else (first_pkt[UDP].dport if UDP in first_pkt else 0),
         'Flow Duration':             duration * 1e6,

@@ -29,6 +29,11 @@ class Full_pipeline():
         else:
             self.Timestamps = pd.Series(["Unknown"] * len(self.Data), index=self.Data.index)
             
+        if 'IP' in self.Data.columns:
+            self.IPs = self.Data['IP'].copy()
+        else:
+            self.IPs = pd.Series(["Unknown"] * len(self.Data), index=self.Data.index)
+            
         self.Data=self.Data[['Destination Port', 'Flow Duration', 'Total Length of Fwd Packets',
        'Fwd Packet Length Mean', 'Fwd Packet Length Std',
        'Bwd Packet Length Mean', 'Bwd Packet Length Std', 'Flow Bytes/s',
@@ -75,11 +80,12 @@ class Full_pipeline():
     def Attack(self, mask):
         attack_data = self.Data[mask]
         attack_times = self.Timestamps[mask]
+        attack_ips = self.IPs[mask]
         predictions = phase2_model.predict(attack_data)
         results = []
-        for time, pred in zip(attack_times, predictions):
-            entry = (time, str(pred))
-            print(f"[{time}] Attack type: {pred}")
+        for ip, time, pred in zip(attack_ips, attack_times, predictions):
+            entry = (ip, time, str(pred))
+            print(f"[{time}] IP: {ip} | Attack type: {pred}")
             results.append(entry)
 
         return results
