@@ -173,14 +173,3 @@ python dashboard.py
 # images :
 ![alt text](<Screenshot 2026-05-06 173915.png>) ![alt text](<Screenshot 2026-05-06 174028.png>) ![alt text](<Screenshot 2026-05-06 174043.png>)
 ![alt text](<Screenshot 2026-05-06 175051.png>)
-
-Maintenance & notes
--------------------
-- Rename `retraning_pipeline` → `retraining_pipeline` to avoid import issues and improve clarity.
-- Add `.venv/` to `.gitignore` to keep virtual environments out of source control.
-- Add CLI arguments to `main.py` and retraining scripts for configurable runtime options (port, debug, upload directory, model paths).
-- Add unit tests for `src/Captured.extract_features()` and integration tests for `models/pipeline.Full_pipeline.run()` using small PCAP fixtures.
-
-License
--------
-Add a license file when publishing the project (suggested: MIT or Apache-2.0).
